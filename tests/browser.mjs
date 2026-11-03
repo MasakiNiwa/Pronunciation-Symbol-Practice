@@ -9,6 +9,7 @@ const context=await browser.newContext({viewport:{width:1280,height:1000}});
 await context.addInitScript(()=>{
  window.__stopped=0;window.__inferred=0;
  class FakeWorker{
+  constructor(){window.__modelWorker=this;}
   postMessage(data){
    if(data.type==='load')setTimeout(()=>this.onmessage?.({data:{type:'ready'}}),20);
    if(data.type==='transcribe'){
@@ -31,7 +32,7 @@ await context.addInitScript(()=>{
  class FakeRecognition{
   start(){this.onstart?.();setTimeout(()=>{
    this.onresult?.({results:[[{transcript:'right'}]]});this.onend?.();
-  },20);}
+  },window.__recognitionDelay||20);}
   stop(){this.onend?.();}abort(){}
  }
  window.SpeechRecognition=FakeRecognition;
@@ -61,6 +62,14 @@ try{
  await page.waitForFunction(()=>document.querySelector('#result-note').textContent.includes('実測IPAではありません'));
  assert.equal(await page.locator('#observed').textContent(),'right');
  assert.equal(await page.locator('.sound').count(),0);
+ await page.evaluate(()=>window.__recognitionDelay=300);
+ await page.locator('#record').click();
+ await page.evaluate(()=>window.__modelWorker.onmessage({data:{type:'error',message:'Simulated background load error'}}));
+ assert.equal(await page.locator('#record').isDisabled(),true);
+ await page.waitForFunction(()=>!document.querySelector('#record').disabled);
+ await page.locator('#ipa-mode').click();
+ await page.locator('#load-model').click();
+ await page.waitForFunction(()=>!document.querySelector('#record').disabled);
  await page.locator('#word').fill('different');
  assert.equal(await page.locator('#reference').inputValue(),'');
  await page.locator('#word').fill('two words');

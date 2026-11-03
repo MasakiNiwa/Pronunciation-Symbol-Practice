@@ -70,9 +70,10 @@ function changeMode(next){
  controls();renderComparison();
 }
 function releaseModel(){
+ const keepBusy=mode==='word'&&busy;
  worker?.terminate();worker=null;ready=false;recording?.dispose();recording=null;micStarting=false;
  $('cancel-model').hidden=true;$('model-status').textContent='モデルを解放しました。キャッシュはブラウザ設定から消去できます。';
- setBusy(false);status('再び準備するか、ブラウザ標準の単語認識を試せます。');
+ setBusy(keepBusy);if(mode==='ipa')status('再び準備するか、ブラウザ標準の単語認識を試せます。');
 }
 function startModel(){
  if(worker)return;
@@ -97,7 +98,7 @@ function startModel(){
  }catch(error){failModel(error.message);}
 }
 function failModel(message){
- releaseModel();$('model-status').textContent='処理に失敗: '+message;status('モデルを再準備して試せます。録音がある場合は再生できます。');
+ releaseModel();$('model-status').textContent='処理に失敗: '+message;if(mode==='ipa')status('モデルを再準備して試せます。録音がある場合は再生できます。');
 }
 function microphoneError(error){
  const messages={NotAllowedError:'マイクの許可が必要です。ブラウザのサイト設定から許可してください。',NotFoundError:'マイクが見つかりません。',NotReadableError:'マイクを使用できません。他のアプリの利用状況をご確認ください。'};
@@ -122,7 +123,9 @@ async function stopRecording(){
   const rms=Math.sqrt(pcm.reduce((s,x)=>s+x*x,0)/pcm.length);
   if(rms<0.003)throw new Error('音声が小さいか、無音でした。マイクに近づいてお試しください。');
   clearAudio();url=URL.createObjectURL(wavBlob(pcm,rate));$('playback').src=url;$('playback').hidden=false;$('clear-audio').hidden=false;
+  const activeWorker=worker;
   const samples=await resample(pcm,rate);
+  if(worker!==activeWorker)return;
   worker.postMessage({type:'transcribe',pcm:samples},[samples.buffer]);
  }catch(error){setBusy(false);status(error.message);}
 }
