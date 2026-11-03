@@ -1,0 +1,32 @@
+name: Check
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - name: Syntax check
+        run: |
+          for file in src/*.js; do node --check "$file"; done
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Browser integration (mock phoneme model)
+        run: |
+          python3 -m http.server 8000 > /tmp/server.log 2>&1 &
+          node tests/browser.mjs
+      - name: Real model load and inference smoke
+        timeout-minutes: 10
+        run: node tests/model-smoke.mjs

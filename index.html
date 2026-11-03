@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ja">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#eef5f3">
+<title>Pronunciation Symbol Practice</title><link rel="stylesheet" href="./style.css"></head>
+<body>
+<header><a class="brand" href="./"><span class="logo">/ə/</span> Pronunciation Lab</a><span class="badge">EXPERIMENT 01</span></header>
+<main>
+<section class="intro"><p class="eyebrow">LISTEN TO YOUR SOUNDS</p><h1>「言えた」を、<br>音のかたちで見てみよう。</h1><p>英語をひとこと録音して、あなたの音を発音記号へ。<br>お手本と並べて、次に試す音を見つける実験室。</p></section>
+<div class="workspace">
+<section class="card target"><div class="section-title"><span class="step">01</span><h2>練習する単語</h2></div>
+<form id="word-form"><label for="word">英単語（1語）</label><div class="input-row"><input id="word" value="right" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="60" required><button id="lookup">調べる</button></div></form>
+<div class="examples" id="examples" aria-label="練習単語"></div>
+<div class="reference"><p class="eyebrow">REFERENCE / 基準の発音</p><div id="reference-display" class="ipa">/raɪt/</div><p id="source" class="small"></p><label for="variants">辞書の候補</label><select id="variants"></select>
+<label for="reference">基準IPA（編集できます）</label><input id="reference" value="raɪt" maxlength="100" spellcheck="false"><button id="speak" class="secondary" type="button">▶ 単語のお手本を聞く</button><p class="small">読み上げは端末の音声です。選択したIPAを厳密に再現するものではありません。</p></div>
+<p id="dict-status" class="small" role="status"></p></section>
+<section class="card practice"><div class="section-title"><span class="step">02</span><h2>あなたの音を見てみる</h2></div>
+<div class="mode-tabs" role="group" aria-label="認識モード"><button id="ipa-mode" aria-pressed="true">音声 → IPA <span>端末内AI</span></button><button id="word-mode" aria-pressed="false">音声 → 単語 <span>ブラウザ標準</span></button></div>
+<div id="ipa-panel"><p class="small">音声そのものから発音記号を推定します。初回は約355MB＋実行ライブラリをダウンロード。Wi-Fiでの利用をおすすめします。</p>
+<div class="actions"><button id="load-model" class="secondary">モデルを準備する</button><button id="cancel-model" class="quiet" hidden>中止・モデル解放</button></div><p id="model-status" class="small" role="status">モデル未読み込み · 音声は端末内で処理</p></div>
+<div id="word-panel" hidden><p class="small">ブラウザが認識した単語と、その単語の辞書IPAを表示します。実際に出した音のIPAではなく、発音の正誤判定には使えません。音声がブラウザ提供元へ送信される場合があります。</p><label for="locale">認識・読み上げの英語</label><select id="locale"><option value="en-US">English (US)</option><option value="en-GB">English (UK)</option></select></div>
+<div class="record-area"><button id="record" class="record-button" disabled>● 録音してみる</button><button id="stop" class="secondary" disabled>■ 停止</button><meter id="level" min="0" max="0.2" value="0" aria-label="マイク音量"></meter><p id="status" role="status" aria-live="polite">モデルを準備すると録音できます。1語ずつ、最大8秒。</p></div>
+<div class="result"><p id="result-label" class="eyebrow">YOUR SOUND / 音声から推定したIPA</p><div id="observed" class="ipa">—</div><p id="result-note" class="small">ここにあなたの音が表示されます。</p><audio id="playback" controls hidden aria-label="録音した音声"></audio><button id="clear-audio" class="quiet" hidden>録音を消す</button></div>
+</section></div>
+<section class="card comparison"><div class="section-title"><span class="step">03</span><h2>音を並べて、比べる</h2><span id="similarity" class="badge">比較待ち</span></div><p class="small">基準 → 推定。緑は一致、オレンジは差分、破線は追加・欠落。認識モデルの誤りや方言差も含みます。</p><div id="alignment" class="alignment"><p>音声からIPAを推定すると、音ごとの比較が表示されます。</p></div><p id="comparison-note" class="small">一致度は記号列の近さです。発音の上手さを採点するものではありません。</p></section>
+<details class="card help"><summary>この実験でできること・データの扱い</summary>
+<p>ブラウザ標準APIだけでは、音声そのものをIPAにする機能はありません。録音と再生にはWeb Audio API、単語認識にはWeb Speech APIを使い、IPA推定のみ公開AIモデルで補っています。</p>
+<p>端末内AIは英語の限られた音素（TIMIT由来39種類）を扱うため、細かな舌の位置・強勢・長さ・イントネーションを正確に測れません。長さと強勢は比較時に除外します。米英の発音差や辞書の表記差も残ります。</p>
+<p>録音はメモリ上のみで保持し、消去・再録音・ページを閉じると破棄します。アプリから音声をアップロードしません。辞書検索では入力単語をdictionaryapi.devに送信。AI準備時はjsDelivrとHugging Faceからファイルを取得し、ブラウザのキャッシュに残る場合があります。</p>
+<p>端末内AIはメモリを多く使います。動作が重い場合は「中止・モデル解放」を押してください。マイクはHTTPSまたはlocalhostで利用できます。単語認識の対応状況はブラウザごとに異なります。</p>
+<p><a href="https://huggingface.co/robg/speako-phoneme-recognizer" target="_blank" rel="noopener">音素モデル（Apache-2.0）</a> · <a href="https://dictionaryapi.dev/" target="_blank" rel="noopener">Free Dictionary API</a> · <a href="https://github.com/MasakiNiwa/Pronunciation-Symbol-Practice" target="_blank" rel="noopener">GitHub</a></p>
+</details>
+</main><footer>ひとつ試して、音を見て、もう一度。</footer><script type="module" src="./src/app.js"></script></body></html>
