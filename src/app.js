@@ -116,14 +116,15 @@ async function startRecording(){
 }
 async function stopRecording(){
  if(!recording)return;
- const instance=recording;recording=null;controls();status('音声を解析中…');
+ const instance=recording,activeWorker=worker;recording=null;controls();status('音声を解析中…');
  try{
-  const {pcm,rate}=await instance.stop();$('level').value=0;
+  const {pcm,rate}=await instance.stop();
+  if(worker!==activeWorker)return;
+  $('level').value=0;
   if(pcm.length/rate<0.25)throw new Error('録音が短すぎます。もう一度お試しください。');
   const rms=Math.sqrt(pcm.reduce((s,x)=>s+x*x,0)/pcm.length);
   if(rms<0.003)throw new Error('音声が小さいか、無音でした。マイクに近づいてお試しください。');
   clearAudio();url=URL.createObjectURL(wavBlob(pcm,rate));$('playback').src=url;$('playback').hidden=false;$('clear-audio').hidden=false;
-  const activeWorker=worker;
   const samples=await resample(pcm,rate);
   if(worker!==activeWorker)return;
   worker.postMessage({type:'transcribe',pcm:samples},[samples.buffer]);
