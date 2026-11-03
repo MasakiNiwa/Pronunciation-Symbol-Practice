@@ -21,7 +21,7 @@ await context.addInitScript(()=>{
  window.Worker=FakeWorker;
  navigator.mediaDevices.getUserMedia=async()=>{
   const c=new AudioContext(),osc=c.createOscillator(),dest=c.createMediaStreamDestination();
-  osc.connect(dest);osc.start();
+  osc.connect(dest);osc.start();await c.resume();
   for(const track of dest.stream.getTracks()){
    const original=track.stop.bind(track);
    track.stop=()=>{window.__stopped++;osc.stop();c.close();original();};
